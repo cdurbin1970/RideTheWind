@@ -1,4 +1,4 @@
-﻿RideTheWind by SilverHawk1
+﻿RideTheWind by SilverHawk1 - https://github.com/cdurbin1970/RideTheWind
 
 This is my first publicly released mod for Valheim. It allows you to travel
 by boat very quickly. It was inspired by a couple of different mods that were available.
