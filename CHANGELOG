@@ -1,5 +1,16 @@
 ﻿RideTheWind 
 
+Release (12/19/2023) v0.0.4.1219 - Intensity patch
+
+- Added the ability to turn off portions of the mod.
+- Added the ability to set the wind intensity manually
+- Re-wrote some of the code to take advantage of Unity mathf functions
+- Added a few more debug areas for testing
+- Moved to a unified MyDebug function
+
+Valeim version: 0.217.38
+BepInEx version: 5.4.22.0
+
 Release (12/17/2023) v0.0.3.1217 - Initial public release
 Valeim version: 0.217.38
 BepInEx version: 5.4.22.0 
