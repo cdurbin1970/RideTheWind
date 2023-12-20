@@ -30,8 +30,23 @@ WindEnabled = true<br>
 Should we enable the sail calculation portion of the mod?<br>
 SailEnabled = true<br>
 <br>
+Should we enable the rudder enhancements?<br>
+RudderEnabled = true<br>
+<br>
 Should we enable the wind intensity portion of the mod?<br>
 WindIntensityEnabled = false<br>
+<br>
+This settings controls the amount of force applied to the rudder control when moving backwards.<br>
+RudderBackwardForce = 3<br>
+<br>
+This setting controls how fast the rudder turns.<br>
+RudderSpeed = 2<br>
+<br>
+This mod works by patching the sailsize calculation used by Valheim. It does not change the<br>
+visible sail size, just the calculation. You can set the multiplier for both half sail and<br> 
+full sail. If SafeSettings is true, then it only works for the Longship<br>
+HalfSailWindSpeed = 1<br>
+FullSailWindSpeed = 1<br>
 <br>
 Set a specific angle for the wind. Normally it is directly behind you.<br>
 UseThisAngle = false<br>
@@ -44,9 +59,4 @@ settings are from 0.00 to 1.00. Please undserstand when you change<br>
 the wind intensity, it affects everything. At values close to 1, the waves<br>
 will become very large like in a storm and with increased sail size, your boat<br>
 can become difficult to steer. Use with caution!<br>  
-WindIntensity=0.05<br>            
-This mod works by patching the sailsize calculation used by Valheim. It does not change the<br>
-visible sail size, just the calculation. You can set the multiplier for both half sail and<br> 
-full sail. If SafeSettings is true, then it only works for the Longship<br>
-HalfSailWindSpeed = 1<br>
-FullSailWindSpeed = 1<br>
+WindIntensity=0.05<br>   

@@ -1,5 +1,9 @@
 ﻿RideTheWind 
 
+- Added code to control the backward force of the rudder
+- Added code to increase the steering speed
+- Added additional sections and options to the config file
+
 Release (12/19/2023) v0.0.4.1219 - Intensity patch
 
 - Added the ability to turn off portions of the mod.
