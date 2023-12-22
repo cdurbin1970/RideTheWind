@@ -67,6 +67,7 @@
   <ItemGroup>
     <Content Include="CHANGELOG" />
     <Content Include="README.MD" />
+    <Content Include="README.TXT" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

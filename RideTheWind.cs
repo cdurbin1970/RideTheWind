@@ -6,7 +6,7 @@ using System.Reflection;
 using UnityEngine;
 
 namespace RideTheWind {
-  [BepInPlugin("silverhawk1.RideTheWind", "RideTheWind", "0.0.4.1219")]
+  [BepInPlugin("silverhawk1.RideTheWind", "RideTheWind", "0.0.5.1222")]
     public class BepInExPlugin : BaseUnityPlugin {
         private static BepInExPlugin _context;
         private static ConfigEntry<bool> _isDebug;
@@ -41,7 +41,7 @@ namespace RideTheWind {
             BepInExPlugin._windIntensity = this.Config.Bind("Wind", "WindIntensity", 0.05f, "Set the wind intensity (0.00-1 MAX");
             BepInExPlugin._speedHalfSail = this.Config.Bind("Sail", "HalfSailWindSpeed", 2.0f, "Wind speed multiplier for half sail (1-6 MAX)");
             BepInExPlugin._speedFullSail = this.Config.Bind("Sail", "FullSailWindSpeed", 4.0f, "Wind speed multiplier for full sail (1-6 MAX)");
-            BepInExPlugin._rudderBackwardForce = this.Config.Bind("Rudder", "RudderBackwardForce", 3.0f, "Rudder backward force multiplier");
+            BepInExPlugin._rudderBackwardForce = this.Config.Bind("Rudder", "RudderBackwardForce", 2.0f, "Rudder backward force multiplier");
             BepInExPlugin._rudderSpeed = this.Config.Bind("Rudder", "RudderSpeed", 2.0f, "Rudder speed multiplier");
 
             if (!BepInExPlugin._modEnabled.Value) {

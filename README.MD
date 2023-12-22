@@ -1,4 +1,4 @@
-﻿RideTheWind by SilverHawk1 - https://github.com/cdurbin1970/RideTheWind
+﻿RideTheWind by SilverHawk1 - <a href="https://github.com/cdurbin1970/RideTheWind">GitHub</a>
 <br><br>
 This is my first publicly released mod for Valheim. It allows you to travel<br>
 by boat very quickly. It was inspired by a couple of different mods that were available.<br>
@@ -37,7 +37,7 @@ Should we enable the wind intensity portion of the mod?<br>
 WindIntensityEnabled = false<br>
 <br>
 This settings controls the amount of force applied to the rudder control when moving backwards.<br>
-RudderBackwardForce = 3<br>
+RudderBackwardForce = 2<br>
 <br>
 This setting controls how fast the rudder turns.<br>
 RudderSpeed = 2<br>
@@ -45,8 +45,8 @@ RudderSpeed = 2<br>
 This mod works by patching the sailsize calculation used by Valheim. It does not change the<br>
 visible sail size, just the calculation. You can set the multiplier for both half sail and<br> 
 full sail. If SafeSettings is true, then it only works for the Longship<br>
-HalfSailWindSpeed = 1<br>
-FullSailWindSpeed = 1<br>
+HalfSailWindSpeed = 2<br>
+FullSailWindSpeed = 4<br>
 <br>
 Set a specific angle for the wind. Normally it is directly behind you.<br>
 UseThisAngle = false<br>

@@ -1,8 +1,9 @@
-﻿RideTheWind 
+﻿RideTheWind (12/22/2023) v0.0.5.1222 - Rudder Patch
 
 - Added code to control the backward force of the rudder
 - Added code to increase the steering speed
 - Added additional sections and options to the config file
+- Initial config settings are "sane" settings
 
 Release (12/19/2023) v0.0.4.1219 - Intensity patch
 
