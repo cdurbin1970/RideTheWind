@@ -1,16 +1,20 @@
 ﻿using System.Globalization;
 using BepInEx;
+using BepInEx.Logging;
 using BepInEx.Configuration;
 using HarmonyLib;
 using System.Reflection;
 using UnityEngine;
+using System.Net;
 
 namespace RideTheWind {
-  [BepInPlugin("silverhawk1.RideTheWind", "RideTheWind", "0.0.5.1222")]
-    public class BepInExPlugin : BaseUnityPlugin {
-        private static BepInExPlugin _context;
+  [BepInPlugin("silverhawk1.RideTheWind", "RideTheWind", thisVersion)]
+    public class RideTheWindPlugin : BaseUnityPlugin {
+
+        private static RideTheWindPlugin _context;
         private static ConfigEntry<bool> _isDebug;
         private static ConfigEntry<bool> _modEnabled;
+        private static ConfigEntry<bool> _checkForNewVersion;
         private static ConfigEntry<bool> _windEnabled;
         private static ConfigEntry<bool> _sailEnabled;
         private static ConfigEntry<bool> _useWindIntensity;
@@ -23,28 +27,61 @@ namespace RideTheWind {
         private static ConfigEntry<float> _windIntensity;
         private static ConfigEntry<float> _rudderBackwardForce;
         private static ConfigEntry<float> _rudderSpeed;
+        private const string thisVersion = "0.0.6.1223";
+        public static string newestVersion = "";
+        private const string URL = "https://api.github.com/repos/cdurbin1970/RideTheWind/releases/latest";
+        public static new ManualLogSource Logger { get; private set; }
 
         private void Awake() {
+            Logger = base.Logger;
+            Logger.LogInfo($"RideTheWind version {thisVersion} loaded.");
         /*
             Safe settings is that the wind speed calculation will only work on the Longship and there is a MAX speed of 6
         */
-            BepInExPlugin._context = this;
-            BepInExPlugin._isDebug = this.Config.Bind("General", "DebugMode", false, "Print debug messages. Not normally enabled as it will spam your console and log file.");
-            BepInExPlugin._modEnabled = this.Config.Bind("General", "ModEnabled", true, "Enable this mod?");
-            BepInExPlugin._safety = this.Config.Bind("General", "SafeSettings", true, "Use safe settings? When safe is true, will only work with Longship and 6 is max speed.");
-            BepInExPlugin._windEnabled = this.Config.Bind("General", "WindEnabled", true, "Enable the wind behind you?");
-            BepInExPlugin._sailEnabled = this.Config.Bind("General", "SailEnabled", true, "Enable the wind speed multiplier?");
-            BepInExPlugin._rudderEnabled = this.Config.Bind("General", "RudderEnabled", true, "Enable the rudder changes?");
-            BepInExPlugin._useWindIntensity = this.Config.Bind("General", "WindIntensityEnabled", false, "Enable the wind intensity?");
-            BepInExPlugin._useAngle = this.Config.Bind("Wind", "UseThisAngle", false, "Want to set a specific angle?");
-            BepInExPlugin._angle = this.Config.Bind("Wind", "TheAngle", 0.0f, "Wind angle relative to ship");
-            BepInExPlugin._windIntensity = this.Config.Bind("Wind", "WindIntensity", 0.05f, "Set the wind intensity (0.00-1 MAX");
-            BepInExPlugin._speedHalfSail = this.Config.Bind("Sail", "HalfSailWindSpeed", 2.0f, "Wind speed multiplier for half sail (1-6 MAX)");
-            BepInExPlugin._speedFullSail = this.Config.Bind("Sail", "FullSailWindSpeed", 4.0f, "Wind speed multiplier for full sail (1-6 MAX)");
-            BepInExPlugin._rudderBackwardForce = this.Config.Bind("Rudder", "RudderBackwardForce", 2.0f, "Rudder backward force multiplier");
-            BepInExPlugin._rudderSpeed = this.Config.Bind("Rudder", "RudderSpeed", 2.0f, "Rudder speed multiplier");
+            RideTheWindPlugin._context = this;
+            RideTheWindPlugin._isDebug = this.Config.Bind("General", "DebugMode", false, "Print debug messages. Not normally enabled as it will spam your console and log file.");
+            RideTheWindPlugin._modEnabled = this.Config.Bind("General", "ModEnabled", true, "Enable this mod?");
+            RideTheWindPlugin._checkForNewVersion = this.Config.Bind("General", "VersionCheck", false, "Automatically check for new version?");
+            RideTheWindPlugin._safety = this.Config.Bind("General", "SafeSettings", true, "Use safe settings? When safe is true, will only work with Longship and 6 is max speed.");
+            RideTheWindPlugin._windEnabled = this.Config.Bind("General", "WindEnabled", true, "Enable the wind behind you?");
+            RideTheWindPlugin._sailEnabled = this.Config.Bind("General", "SailEnabled", true, "Enable the wind speed multiplier?");
+            RideTheWindPlugin._rudderEnabled = this.Config.Bind("General", "RudderEnabled", true, "Enable the rudder changes?");
+            RideTheWindPlugin._useWindIntensity = this.Config.Bind("General", "WindIntensityEnabled", false, "Enable the wind intensity?");
+            RideTheWindPlugin._useAngle = this.Config.Bind("Wind", "UseThisAngle", false, "Want to set a specific angle?");
+            RideTheWindPlugin._angle = this.Config.Bind("Wind", "TheAngle", 0.0f, "Wind angle relative to ship");
+            RideTheWindPlugin._windIntensity = this.Config.Bind("Wind", "WindIntensity", 0.05f, "Set the wind intensity (0.00-1 MAX");
+            RideTheWindPlugin._speedHalfSail = this.Config.Bind("Sail", "HalfSailWindSpeed", 2.0f, "Wind speed multiplier for half sail (1-6 MAX)");
+            RideTheWindPlugin._speedFullSail = this.Config.Bind("Sail", "FullSailWindSpeed", 4.0f, "Wind speed multiplier for full sail (1-6 MAX)");
+            RideTheWindPlugin._rudderBackwardForce = this.Config.Bind("Rudder", "RudderBackwardForce", 2.0f, "Rudder backward force multiplier");
+            RideTheWindPlugin._rudderSpeed = this.Config.Bind("Rudder", "RudderSpeed", 2.0f, "Rudder speed multiplier");
 
-            if (!BepInExPlugin._modEnabled.Value) {
+            if (_checkForNewVersion.Value) {
+                Logger.LogInfo("RideTheWind checking for new version.");
+                var upToDate = CheckForNewVersion();
+                switch (upToDate) {
+                    case 1000:
+                        Logger.LogWarning("There is a newer version available!");
+                        break;
+                    case 1001:
+                        Logger.LogWarning("Problem parsing the version information");
+                        break;
+                    case 1002:
+                        Logger.LogInfo("RideTheWind is up to date.");
+                        break;
+                    case 1003:
+                        Logger.LogWarning("Newer version than is publicly available!?!");
+                        break;
+                    default:
+                        Logger.LogWarning("Unknown error checking version");
+                        break;
+                }
+            }
+            else {
+                Logger.LogWarning("Version checking disabled via config.");
+            }
+
+            if (!RideTheWindPlugin._modEnabled.Value) {
+                Logger.LogWarning("RideTheWind not enabled via config.");
                 return;
             }
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
@@ -53,28 +90,28 @@ namespace RideTheWind {
         [HarmonyPatch(typeof (EnvMan), "SetTargetWind")]
         private class TargetWindPatch {
             private static void Prefix(ref Vector3 dir, ref float intensity) {
-                if (!BepInExPlugin._sailEnabled.Value) {
+                if (!RideTheWindPlugin._sailEnabled.Value) {
                     return;
                 }
                 var localShip = Ship.GetLocalShip();
                 if (localShip == null) {
-                    if (BepInExPlugin._isDebug.Value) {
-                        MyDebug("Wind: No Ship Found");
+                    if (RideTheWindPlugin._isDebug.Value) {
+                        Logger.LogDebug("Wind: No Ship Found");
                     }
                     return;
                 }
                 if (localShip.GetSpeedSetting() != Ship.Speed.Half && localShip.GetSpeedSetting() != Ship.Speed.Full) {
-                    if (BepInExPlugin._isDebug.Value) {
-                        MyDebug("Wind: Ship too slow");
+                    if (RideTheWindPlugin._isDebug.Value) {
+                        Logger.LogDebug("Wind: Ship too slow");
                     }
                     return;
                 }
                 var forward = localShip.transform.forward;
-                if (BepInExPlugin._isDebug.Value) {
-                    MyDebug(forward.ToString());
+                if (RideTheWindPlugin._isDebug.Value) {
+                    Logger.LogDebug(forward.ToString());
                 }
-                if (BepInExPlugin._useAngle.Value) {
-                    var num = (float) (((double) Vector3.SignedAngle(Vector3.forward, forward, Vector3.up) + BepInExPlugin._angle.Value) * 3.1415927410125732 / 180.0);
+                if (RideTheWindPlugin._useAngle.Value) {
+                    var num = (float) (((double) Vector3.SignedAngle(Vector3.forward, forward, Vector3.up) + RideTheWindPlugin._angle.Value) * 3.1415927410125732 / 180.0);
                     dir.x = Mathf.Sin(num);
                     dir.z = Mathf.Cos(num);
                 }
@@ -82,8 +119,8 @@ namespace RideTheWind {
                     dir.x = forward.x;
                     dir.z = forward.z;
                 }
-                if (BepInExPlugin._useWindIntensity.Value) {
-                    intensity = Mathf.Clamp(BepInExPlugin._windIntensity.Value, 0.00f, 1.00f);
+                if (RideTheWindPlugin._useWindIntensity.Value) {
+                    intensity = Mathf.Clamp(RideTheWindPlugin._windIntensity.Value, 0.00f, 1.00f);
                 }
             }
         }
@@ -91,45 +128,45 @@ namespace RideTheWind {
         [HarmonyPatch(typeof (Ship), "GetSailForce")]
         private class ShipSailSize {
             private static void Prefix(ref float sailSize) {
-                if (!BepInExPlugin._windEnabled.Value) {
+                if (!RideTheWindPlugin._windEnabled.Value) {
                     return;
                 }
                 var localShip = Ship.GetLocalShip();
                 if (localShip == null) {
-                    if (BepInExPlugin._isDebug.Value) {
-                        MyDebug("Sail: No ship found");
+                    if (RideTheWindPlugin._isDebug.Value) {
+                        Logger.LogDebug("Sail: No ship found");
                     }
                     return;
                 }
                 else {
-                    if (BepInExPlugin._isDebug.Value) {
-                        MyDebug("Sail: Name- " + localShip.name);
+                    if (RideTheWindPlugin._isDebug.Value) {
+                        Logger.LogDebug("Sail: Name- " + localShip.name);
                     }
                 }
-                if (BepInExPlugin._safety.Value) {
+                if (RideTheWindPlugin._safety.Value) {
                     if (localShip.name == "VikingShip(Clone)") {
-                        if (BepInExPlugin._isDebug.Value) {
-                            MyDebug("Sail: Found Viking ship");
+                        if (RideTheWindPlugin._isDebug.Value) {
+                            Logger.LogDebug("Sail: Found Viking ship");
                         }
                         if (localShip.GetSpeedSetting() == Ship.Speed.Half) {
-                            sailSize *= Mathf.Clamp(BepInExPlugin._speedHalfSail.Value, 1f, 6f);
+                            sailSize *= Mathf.Clamp(RideTheWindPlugin._speedHalfSail.Value, 1f, 6f);
                         }
                         else if (localShip.GetSpeedSetting() == Ship.Speed.Full) {
-                            sailSize *= Mathf.Clamp(BepInExPlugin._speedFullSail.Value, 1f, 6f);
+                            sailSize *= Mathf.Clamp(RideTheWindPlugin._speedFullSail.Value, 1f, 6f);
                         }
                     }
                 }
                 else {
                     if (localShip.GetSpeedSetting() == Ship.Speed.Half) {
-                        sailSize *= Mathf.Clamp(BepInExPlugin._speedHalfSail.Value, 1f, 99f);
+                        sailSize *= Mathf.Clamp(RideTheWindPlugin._speedHalfSail.Value, 1f, 99f);
                     }
                     else if(localShip.GetSpeedSetting() == Ship.Speed.Full) {
-                        sailSize *= Mathf.Clamp(BepInExPlugin._speedFullSail.Value, 1f, 99f);
+                        sailSize *= Mathf.Clamp(RideTheWindPlugin._speedFullSail.Value, 1f, 99f);
                     }
                 }
-                if (BepInExPlugin._isDebug.Value) {
-                    MyDebug("Sail size: " + sailSize.ToString(CultureInfo.InvariantCulture));
-                    MyDebug("Sail force: " + localShip.m_sailForceFactor.ToString(CultureInfo.InvariantCulture));
+                if (RideTheWindPlugin._isDebug.Value) {
+                    Logger.LogDebug("Sail size: " + sailSize.ToString(CultureInfo.InvariantCulture));
+                    Logger.LogDebug("Sail force: " + localShip.m_sailForceFactor.ToString(CultureInfo.InvariantCulture));
                 }
             }
         }
@@ -137,29 +174,29 @@ namespace RideTheWind {
         [HarmonyPatch(typeof(Ship), "Start")]
         private class ShipRudderBackwardForce {
             private static void Prefix(Ship __instance) {
-                if (!BepInExPlugin._rudderEnabled.Value) {
+                if (!RideTheWindPlugin._rudderEnabled.Value) {
                     return;
                 }
                 
                 if (__instance == null) {
-                    if (BepInExPlugin._isDebug.Value) {
-                        MyDebug("Backward Rudder: No ship found");
+                    if (RideTheWindPlugin._isDebug.Value) {
+                        Logger.LogDebug("Backward Rudder: No ship found");
                     }
                     return;
                 }
                 else {
-                    if (BepInExPlugin._isDebug.Value) {
-                        MyDebug("Backward Rudder: Name- " + __instance.name);
+                    if (RideTheWindPlugin._isDebug.Value) {
+                        Logger.LogDebug("Backward Rudder: Name- " + __instance.name);
                     }
                 }
 
-                if (BepInExPlugin._safety.Value) {
+                if (RideTheWindPlugin._safety.Value) {
                     if (__instance.name == "VikingShip(Clone)") {
-                        __instance.m_backwardForce = BepInExPlugin._rudderBackwardForce.Value;
+                        __instance.m_backwardForce = RideTheWindPlugin._rudderBackwardForce.Value;
                     }
                 }
                 else {
-                    __instance.m_backwardForce = BepInExPlugin._rudderBackwardForce.Value;
+                    __instance.m_backwardForce = RideTheWindPlugin._rudderBackwardForce.Value;
                 }
             }
         }
@@ -167,33 +204,62 @@ namespace RideTheWind {
         [HarmonyPatch(typeof(Ship), "Start")]
         private class ShipRudderSpeed {
             private static void Prefix(Ship __instance) {
-                if (!BepInExPlugin._rudderEnabled.Value) {
+                if (!RideTheWindPlugin._rudderEnabled.Value) {
                     return;
                 }
                 if (__instance == null) {
-                    if (BepInExPlugin._isDebug.Value) {
-                        MyDebug("Rudder Speed: No ship found");
+                    if (RideTheWindPlugin._isDebug.Value) {
+                        Logger.LogDebug("Rudder Speed: No ship found");
                     }
                     return;
                 }
                 else {
-                    if (BepInExPlugin._isDebug.Value) {
-                        MyDebug("Rudder Speed: Name- " + __instance.name);
+                    if (RideTheWindPlugin._isDebug.Value) {
+                        Logger.LogDebug("Rudder Speed: Name- " + __instance.name);
                     }
                 }
-                if (BepInExPlugin._safety.Value) {
+                if (RideTheWindPlugin._safety.Value) {
                     if (__instance.name == "VikingShip(Clone)") {
-                        __instance.m_rudderSpeed = BepInExPlugin._rudderSpeed.Value;
+                        __instance.m_rudderSpeed = RideTheWindPlugin._rudderSpeed.Value;
                     }
                 }
                 else {
-                    __instance.m_rudderSpeed = BepInExPlugin._rudderSpeed.Value;
+                    __instance.m_rudderSpeed = RideTheWindPlugin._rudderSpeed.Value;
                 }
             }
         }
 
-        public static void MyDebug(string str = "", bool pref = true) {
-            Debug.Log((pref ? typeof(BepInExPlugin).Namespace + " " : "") + str);
+        private static int CheckForNewVersion() { 
+            WebClient client = new WebClient();
+            client.Headers.Add("User-Agent: RideTheWind");
+            try {
+                var reply = client.DownloadString(URL);
+                newestVersion = reply.Substring(reply.IndexOf("tag_name") + 10, 12).Trim('"').Trim();
+            }
+            catch {
+                Logger.LogWarning("Problem retrieving the version information.");
+                newestVersion = "Unknown";
+            }
+            if (System.Version.TryParse(newestVersion, out var newVersion)) {
+                if (System.Version.TryParse(thisVersion, out var currentVersion)) {
+                    if (currentVersion < newVersion) {
+                        return 1000;//"There is a newer version available!";
+                    }
+                    else if (currentVersion > newVersion) {
+                        return 1003; //"Newer version than is publicly available"
+                    }
+                }
+                else {
+                    Logger.LogWarning("Couldn't parse current version");
+                }
+            }
+            else {
+                Logger.LogWarning("Couldn't parse newest version.");
+                if (newestVersion != thisVersion) {
+                    return 1001;//"Problem parsing the version information";
+                }
+            }
+            return 1002;//"There was a failure determining the version.";
         }
     }
 }

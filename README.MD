@@ -1,13 +1,10 @@
 ﻿RideTheWind by SilverHawk1 - <a href="https://github.com/cdurbin1970/RideTheWind">GitHub</a>
 <br><br>
-This is my first publicly released mod for Valheim. It allows you to travel<br>
-by boat very quickly. It was inspired by a couple of different mods that were available.<br>
-
-It serves two functions: <br>
-    1) The wind is always at your back when you are on a boat and at the helm. <br>
-    2) You can increase the maximum speed of your boat at half sail and full sail.<br>
+This mod allows you to tweak boat settings for better QOL. It was inspired by a couple of different mods that were available.<br>
 <br>
-Like most mods, this mod requires BepInEx in order to run.<br>
+<br>
+Like most mods, this mod requires BepInEx in order to run. Drop it into your {install_dir}/bepinex/plugins directory<br>
+The config file is located in {install_dir}/bepinex/config<br>
 <br>
 <b>Config options</b>
 <br>
@@ -16,6 +13,9 @@ DebugMode = false<br>
 <br>
 Enable the mod (default true)<br> 
 ModEnabled = true<br>
+<br>
+Automatically check for newer versions? (default false)<br>
+VersionCheck = false<br>
 <br>
 When safe settings are enabled, the wind speed is only increased for Longships up<br>
 to a maximum of 6. When false, it will work with any ship or raft and no max value. At 10,<br>

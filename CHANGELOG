@@ -1,9 +1,21 @@
-﻿RideTheWind (12/22/2023) v0.0.5.1222 - Rudder Patch
+﻿RideTheWind (12/23/2023) v0.0.6.1223 - Version Patch
+
+- Added code to automatically check for a newer version (must opt in)
+- Removed MyDebug and switched to the standard logger system
+- Updated the mod README and description 
+
+Valeim version: 0.217.38
+BepInEx version: 5.4.22.0 
+
+RideTheWind (12/22/2023) v0.0.5.1222 - Rudder Patch
 
 - Added code to control the backward force of the rudder
 - Added code to increase the steering speed
 - Added additional sections and options to the config file
 - Initial config settings are "sane" settings
+
+Valeim version: 0.217.38
+BepInEx version: 5.4.22.0 
 
 Release (12/19/2023) v0.0.4.1219 - Intensity patch
 
