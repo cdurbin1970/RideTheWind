@@ -1,9 +1,10 @@
 ﻿RideTheWind by SilverHawk1 - <a href="https://github.com/cdurbin1970/RideTheWind">GitHub</a>
 <br><br>
-This mod allows you to tweak boat settings for better QOL. It was inspired by a couple of different mods that were available.<br>
+This mod allows you to tweak boat and other settings for better QOL. It was inspired by a couple of different mods that were available.<br>
 <br>
 <br>
-Like most mods, this mod requires BepInEx in order to run. Drop it into your {install_dir}/bepinex/plugins directory<br>
+Like most mods, this mod requires BepInEx in order to run.<br>
+Drop it into your {install_dir}/bepinex/plugins directory<br>
 The config file is located in {install_dir}/bepinex/config<br>
 <br>
 <b>Config options</b>
@@ -59,4 +60,10 @@ settings are from 0.00 to 1.00. Please undserstand when you change<br>
 the wind intensity, it affects everything. At values close to 1, the waves<br>
 will become very large like in a storm and with increased sail size, your boat<br>
 can become difficult to steer. Use with caution!<br>  
-WindIntensity=0.05<br>   
+WindIntensity=0.05<br> 
+<br>
+Set the max camera zoom when in a boat (MAX 50)<br>
+MaxCameraZoom = 6<br>
+<br>
+Size of the map reveal when exploring new areas<br>
+ExploreSize = 100

@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Linq;
 using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Configuration;
@@ -8,7 +9,7 @@ using UnityEngine;
 using System.Net;
 
 namespace RideTheWind {
-  [BepInPlugin("silverhawk1.RideTheWind", "RideTheWind", thisVersion)]
+  [BepInPlugin("silverhawk1.RideTheWind", "RideTheWind", ThisVersion)]
     public class RideTheWindPlugin : BaseUnityPlugin {
 
         private static RideTheWindPlugin _context;
@@ -27,14 +28,16 @@ namespace RideTheWind {
         private static ConfigEntry<float> _windIntensity;
         private static ConfigEntry<float> _rudderBackwardForce;
         private static ConfigEntry<float> _rudderSpeed;
-        private const string thisVersion = "0.0.6.1223";
-        public static string newestVersion = "";
-        private const string URL = "https://api.github.com/repos/cdurbin1970/RideTheWind/releases/latest";
-        public static new ManualLogSource Logger { get; private set; }
+        private static ConfigEntry<float> _maxCameraZoom;
+        private static ConfigEntry<float> _exploreSize;
+        private static string _newestVersion = "";
+        private const string ThisVersion = "0.0.7.1227";
+        private const string Url = "https://api.github.com/repos/cdurbin1970/RideTheWind/releases/latest";
+        public new static ManualLogSource Logger { get; private set; }
 
         private void Awake() {
             Logger = base.Logger;
-            Logger.LogInfo($"RideTheWind version {thisVersion} loaded.");
+            Logger.LogInfo($"RideTheWind version {ThisVersion} loaded.");
         /*
             Safe settings is that the wind speed calculation will only work on the Longship and there is a MAX speed of 6
         */
@@ -54,11 +57,17 @@ namespace RideTheWind {
             RideTheWindPlugin._speedFullSail = this.Config.Bind("Sail", "FullSailWindSpeed", 4.0f, "Wind speed multiplier for full sail (1-6 MAX)");
             RideTheWindPlugin._rudderBackwardForce = this.Config.Bind("Rudder", "RudderBackwardForce", 2.0f, "Rudder backward force multiplier");
             RideTheWindPlugin._rudderSpeed = this.Config.Bind("Rudder", "RudderSpeed", 2.0f, "Rudder speed multiplier");
+            RideTheWindPlugin._maxCameraZoom = this.Config.Bind("Camera", "MaxCameraZoom", 6.0f, "Max camera zoom when in a boat (MAX 50)");
+            RideTheWindPlugin._exploreSize = this.Config.Bind("Map", "ExploreSize", 100.0f, "Size of the map reveal when exploring new areas");
+
+            if (!RideTheWindPlugin._modEnabled.Value) {
+                Logger.LogWarning("RideTheWind not enabled via config.");
+                return;
+            }
 
             if (_checkForNewVersion.Value) {
                 Logger.LogInfo("RideTheWind checking for new version.");
-                var upToDate = CheckForNewVersion();
-                switch (upToDate) {
+                switch (CheckForNewVersion()) {
                     case 1000:
                         Logger.LogWarning("There is a newer version available!");
                         break;
@@ -79,12 +88,61 @@ namespace RideTheWind {
             else {
                 Logger.LogWarning("Version checking disabled via config.");
             }
-
-            if (!RideTheWindPlugin._modEnabled.Value) {
-                Logger.LogWarning("RideTheWind not enabled via config.");
-                return;
-            }
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
+        }
+
+        private static int CheckForNewVersion() {
+            WebClient client = new WebClient();
+            client.Headers.Add("User-Agent: RideTheWind");
+            try {
+                var reply = client.DownloadString(Url);
+                _newestVersion = reply.Substring(reply.IndexOf("tag_name") + 10, 12).Trim('"').Trim();
+            }
+            catch {
+                Logger.LogWarning("Problem retrieving the version information.");
+                _newestVersion = "Unknown";
+            }
+            if (System.Version.TryParse(_newestVersion, out var newVersion)) {
+                if (System.Version.TryParse(ThisVersion, out var currentVersion)) {
+                    if (currentVersion < newVersion) {
+                        return 1000;//"There is a newer version available!";
+                    }
+                    else if (currentVersion > newVersion) {
+                        return 1003; //"Newer version than is publicly available"
+                    }
+                }
+                else {
+                    Logger.LogWarning("Couldn't parse current version");
+                    return 1001;//"Problem parsing the version information";
+                }
+            }
+            else {
+                Logger.LogWarning("Couldn't parse newest version.");
+                if (_newestVersion != ThisVersion) {
+                    return 1001;//"Problem parsing the version information";
+                }
+            }
+            return 1002;//"RideTheWind is up to date."
+        }
+
+        [HarmonyPatch(typeof(Minimap), "Start")]
+        public static class RevealSizePatch {
+            private static void Prefix(Minimap __instance) {
+                if (!RideTheWindPlugin._modEnabled.Value) {
+                    return;
+                }
+                __instance.m_exploreRadius = Mathf.Clamp(RideTheWindPlugin._exploreSize.Value, 1, 10000);
+            }
+        }
+
+        [HarmonyPatch(typeof(GameCamera), "UpdateCamera")]
+        private class MaxBoatCameraZoom {
+            private static void Prefix(GameCamera __instance) {
+                if (!RideTheWindPlugin._modEnabled.Value) {
+                    return;
+                }
+                __instance.m_maxDistanceBoat = Mathf.Clamp(RideTheWindPlugin._maxCameraZoom.Value, 1f, 50f); 
+            }
         }
 
         [HarmonyPatch(typeof (EnvMan), "SetTargetWind")]
@@ -227,39 +285,6 @@ namespace RideTheWind {
                     __instance.m_rudderSpeed = RideTheWindPlugin._rudderSpeed.Value;
                 }
             }
-        }
-
-        private static int CheckForNewVersion() { 
-            WebClient client = new WebClient();
-            client.Headers.Add("User-Agent: RideTheWind");
-            try {
-                var reply = client.DownloadString(URL);
-                newestVersion = reply.Substring(reply.IndexOf("tag_name") + 10, 12).Trim('"').Trim();
-            }
-            catch {
-                Logger.LogWarning("Problem retrieving the version information.");
-                newestVersion = "Unknown";
-            }
-            if (System.Version.TryParse(newestVersion, out var newVersion)) {
-                if (System.Version.TryParse(thisVersion, out var currentVersion)) {
-                    if (currentVersion < newVersion) {
-                        return 1000;//"There is a newer version available!";
-                    }
-                    else if (currentVersion > newVersion) {
-                        return 1003; //"Newer version than is publicly available"
-                    }
-                }
-                else {
-                    Logger.LogWarning("Couldn't parse current version");
-                }
-            }
-            else {
-                Logger.LogWarning("Couldn't parse newest version.");
-                if (newestVersion != thisVersion) {
-                    return 1001;//"Problem parsing the version information";
-                }
-            }
-            return 1002;//"There was a failure determining the version.";
         }
     }
 }

@@ -1,4 +1,13 @@
-﻿RideTheWind (12/23/2023) v0.0.6.1223 - Version Patch
+﻿RideTheWind (12/27/2023) v0.0.7.1227 - Camera Patch
+
+- Refactored some code
+- Added code to set the camera zoom while on a ship (possible issue with other mods that do this)
+- Added code to set the reveal radius when exploring (possible issue with other mods that do this)
+
+Valeim version: 0.217.38
+BepInEx version: 5.4.22.0 
+
+RideTheWind (12/23/2023) v0.0.6.1223 - Version Patch
 
 - Added code to automatically check for a newer version (must opt in)
 - Removed MyDebug and switched to the standard logger system
