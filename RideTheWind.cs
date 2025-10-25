@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.CodeDom;
+using System.Globalization;
 using System.Linq;
 using BepInEx;
 using BepInEx.Logging;
@@ -31,7 +32,7 @@ namespace RideTheWind {
         private static ConfigEntry<float> _maxCameraZoom;
         private static ConfigEntry<float> _exploreSize;
         private static string _newestVersion = "";
-        private const string ThisVersion = "0.0.7.1227";
+        private const string ThisVersion = "0.0.10.2425";
         private const string Url = "https://api.github.com/repos/cdurbin1970/RideTheWind/releases/latest";
         public new static ManualLogSource Logger { get; private set; }
 
@@ -286,5 +287,7 @@ namespace RideTheWind {
                 }
             }
         }
+
+        //[HarmonyPatch(typeof(Attack.HitPointType), Attack]
     }
 }

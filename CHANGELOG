@@ -1,4 +1,12 @@
-﻿RideTheWind (12/27/2023) v0.0.7.1227 - Camera Patch
+﻿RideTheWind (10/24/25) v0.0.10.2425 - Updated
+
+- Updated the code for the new versions of Valheim and BepInEx
+- Changed DotNet version to .NET Framework v4.8
+
+Valheim version: 0.221.4
+BepInEx version: 5.4.23.3
+
+RideTheWind (12/27/2023) v0.0.7.1227 - Camera Patch
 
 - Refactored some code
 - Added code to set the camera zoom while on a ship (possible issue with other mods that do this)
